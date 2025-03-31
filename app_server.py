@@ -11,49 +11,32 @@ from testLane import *
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
-
+# Cấu hình MySQL
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Tai2505@@'
+app.config['MYSQL_PASSWORD'] = '16082004'
 app.config['MYSQL_DB'] = 'datn'
 mysql = MySQL(app)
 
-#
-# Apply Flask CORSx`
-# CORS(app)
-# app.config['CORS_HEADERS'] = 'Content-Type'
+# Kiểm tra kết nối MySQL trong ngữ cảnh ứng dụng
+with app.app_context():
+    try:
+        mysql.connection.ping()
+        print("Kết nối MySQL thành công!")
+    except Exception as e:
+        print("Kết nối MySQL không thành công:", e)
 
 @app.route('/test', methods=['GET'])
 def get_violate():
-    cur = mysql.connection.cursor()
-    cur.execute(
-        "SELECT nametransportation.vh_name  ,  transportationviolation.date_violate , COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name  GROUP BY nametransportation.id_name ;")
-    users = cur.fetchall()
-    cur.close()
-    return jsonify(users)
-
-
-@app.route('/test1', methods=['GET'])
-def get_violate_current():
-    cur = mysql.connection.cursor()
-    cur.execute(
-        "SELECT nametransportation.vh_name  ,   transportationviolation.date_violate , COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name  where transportationviolation.date_violate = curdate() GROUP BY nametransportation.id_name ;")
-    users = cur.fetchall()
-    cur.close()
-    return jsonify(users)
-
-
-# @app.route('/create', methods=['GET'])
-def create(cls):
-    with app.app_context():
+    try:
         cur = mysql.connection.cursor()
-        ngay_hien_tai = datetime.date.today()
-        cur.execute("insert into transportationviolation(id_name , date_violate) values (%s, %s)",
-                    (cls + 1, ngay_hien_tai))
-        mysql.connection.commit()
+        cur.execute(
+            "SELECT nametransportation.vh_name, transportationviolation.date_violate, COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name GROUP BY nametransportation.id_name;")
+        users = cur.fetchall()
         cur.close()
-        return jsonify({'message': 'User created successfully'})
-
+        return jsonify(users)
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 def call_route(cls):
     url_for('create', cls=cls)
