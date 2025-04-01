@@ -9,13 +9,13 @@ from flask_mysqldb import MySQL
 from testHelmet import video_detect_helmet
 from testLane import *
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder="static")
 CORS(app)
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Tai2505@@'
-app.config['MYSQL_DB'] = 'datn'
+app.config["MYSQL_HOST"] = "localhost"
+app.config["MYSQL_USER"] = "root"
+app.config["MYSQL_PASSWORD"] = "Tai2505@@"
+app.config["MYSQL_DB"] = "datn"
 mysql = MySQL(app)
 
 #
@@ -23,21 +23,24 @@ mysql = MySQL(app)
 # CORS(app)
 # app.config['CORS_HEADERS'] = 'Content-Type'
 
-@app.route('/test', methods=['GET'])
+
+@app.route("/test", methods=["GET"])
 def get_violate():
     cur = mysql.connection.cursor()
     cur.execute(
-        "SELECT nametransportation.vh_name  ,  transportationviolation.date_violate , COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name  GROUP BY nametransportation.id_name ;")
+        "SELECT nametransportation.vh_name  ,  transportationviolation.date_violate , COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name  GROUP BY nametransportation.id_name ;"
+    )
     users = cur.fetchall()
     cur.close()
     return jsonify(users)
 
 
-@app.route('/test1', methods=['GET'])
+@app.route("/test1", methods=["GET"])
 def get_violate_current():
     cur = mysql.connection.cursor()
     cur.execute(
-        "SELECT nametransportation.vh_name  ,   transportationviolation.date_violate , COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name  where transportationviolation.date_violate = curdate() GROUP BY nametransportation.id_name ;")
+        "SELECT nametransportation.vh_name  ,   transportationviolation.date_violate , COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name  where transportationviolation.date_violate = curdate() GROUP BY nametransportation.id_name ;"
+    )
     users = cur.fetchall()
     cur.close()
     return jsonify(users)
@@ -48,26 +51,28 @@ def create(cls):
     with app.app_context():
         cur = mysql.connection.cursor()
         ngay_hien_tai = datetime.date.today()
-        cur.execute("insert into transportationviolation(id_name , date_violate) values (%s, %s)",
-                    (cls + 1, ngay_hien_tai))
+        cur.execute(
+            "insert into transportationviolation(id_name , date_violate) values (%s, %s)",
+            (cls + 1, ngay_hien_tai),
+        )
         mysql.connection.commit()
         cur.close()
-        return jsonify({'message': 'User created successfully'})
+        return jsonify({"message": "User created successfully"})
 
 
 def call_route(cls):
-    url_for('create', cls=cls)
+    url_for("create", cls=cls)
     # return redirect(url_for('create', cls=cls))
 
 
 def video_detection(path_x=""):
     cap = cv2.VideoCapture(path_x)
-    model = YOLO('best_new/vehicle.pt')
+    model = YOLO("best_new/vehicle.pt")
     stt_m = 0
     stt_ctb = 0
     examBB = createBB.infoObject()
-    dataBienBan_M = 'F:/python_project/BienBanNopPhatXeMay/ '
-    dataBienBan_CTB = 'F:/python_project/BienBanNopPhatXeOTo/ '
+    dataBienBan_M = "F:/python_project/BienBanNopPhatXeMay/ "
+    dataBienBan_CTB = "F:/python_project/BienBanNopPhatXeOTo/ "
 
     # results = model.track(source="Videos/test4.mp4", show=True, stream=True)
     while cap.isOpened():
@@ -137,50 +142,74 @@ def video_detection(path_x=""):
 
                     #####################################################################
                     # Xe OTO vi pham lane XE MAY
-                    start_line_motor = (0 * int(frame.shape[1] / 10), int((2 * frame.shape[0] / 10)))
+                    start_line_motor = (
+                        0 * int(frame.shape[1] / 10),
+                        int((2 * frame.shape[0] / 10)),
+                    )
                     # 11/20 = 5.5 / 10
-                    end_line_motor = (11 * int(frame.shape[1] / 20), int(8 * frame.shape[0] / 10))
-                    canh_bao_vi_pham_lane_xe_may = start_line_motor[0] < box.xyxy[0][0] < end_line_motor[0] and \
-                                                   start_line_motor[1] < box.xyxy[0][
-                                                       1] < end_line_motor[1]
+                    end_line_motor = (
+                        11 * int(frame.shape[1] / 20),
+                        int(8 * frame.shape[0] / 10),
+                    )
+                    canh_bao_vi_pham_lane_xe_may = (
+                        start_line_motor[0] < box.xyxy[0][0] < end_line_motor[0]
+                        and start_line_motor[1] < box.xyxy[0][1] < end_line_motor[1]
+                    )
                     #####################################################################
 
                     # ##################################################################
                     # Xe máy vi pham lane OTO
                     # lane xe ô tô (trục y phải khớp với vùng roi)
                     # trục x lấy 6/10 , trục y lấy 3/10
-                    start_line_car = (22 * int(frame.shape[1] / 40), int((2 * frame.shape[0] / 10)))
+                    start_line_car = (
+                        22 * int(frame.shape[1] / 40),
+                        int((2 * frame.shape[0] / 10)),
+                    )
 
                     # lấy từ 6/10 đến hết trục X , trục y lấy 8/10
                     end_line_car = (int(frame.shape[1]), int(8 * frame.shape[0] / 10))
 
-                    canh_bao_vi_pham_lane_oto = start_line_car[0] < box.xyxy[0][0] < end_line_car[0] and \
-                                                start_line_car[1] < box.xyxy[0][
-                                                    1] < end_line_car[1]
+                    canh_bao_vi_pham_lane_oto = (
+                        start_line_car[0] < box.xyxy[0][0] < end_line_car[0]
+                        and start_line_car[1] < box.xyxy[0][1] < end_line_car[1]
+                    )
                     # filterDataViolate(frame, (0, int(5 * frame.shape[0] / 10)),
                     #                   (int(frame.shape[1]), int(55 * frame.shape[0] / 10)))
                     center_x = (x + w) // 2
                     center_y = (y + h) // 2
                     filterData = 0 <= center_x <= (int(frame.shape[1])) and int(
-                        5 * frame.shape[0] / 10) <= center_y <= int(
-                        52 * frame.shape[0] / 100)
+                        5 * frame.shape[0] / 10
+                    ) <= center_y <= int(52 * frame.shape[0] / 100)
                     #####################################################################
 
                     # vẽ ra vùng lane xe máy và oto
                     # image = cv2.rectangle(frame, start_line_car, end_line_car
                     #                       , (0, 0, 255), thickness)
-                    image = cv2.rectangle(frame, start_line_motor, end_line_motor
-                                          , (255, 0, 255), thickness)
+                    image = cv2.rectangle(
+                        frame,
+                        start_line_motor,
+                        end_line_motor,
+                        (255, 0, 255),
+                        thickness,
+                    )
 
                     # xét vùng roi theo trục Y
-                    if int((2 * frame.shape[0]) / 10) < int(box.xyxy[0][1]) < int((8 * frame.shape[0]) / 10):
+                    if (
+                        int((2 * frame.shape[0]) / 10)
+                        < int(box.xyxy[0][1])
+                        < int((8 * frame.shape[0]) / 10)
+                    ):
                         cv2.rectangle(frame, (x, y), (w, h), (36, 255, 12), 2)
                         cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
                         if box.cls[0] == 1:
                             if canh_bao_vi_pham_lane_oto:
-                                draw_text(frame, name[box.cls[0]] + " warning", font_scale=0.5,
-                                          pos=(int(box.xyxy[0][0]), int(box.xyxy[0][1])),
-                                          text_color_bg=(0, 0, 0))
+                                draw_text(
+                                    frame,
+                                    name[box.cls[0]] + " warning",
+                                    font_scale=0.5,
+                                    pos=(int(box.xyxy[0][0]), int(box.xyxy[0][1])),
+                                    text_color_bg=(0, 0, 0),
+                                )
                                 print("tọa độ xe máy vi phạm : ", box.xyxy[0])
                                 # cắt hình ảnh xe máy
                                 # cropped_frame = frame[round(y, 1) - 100:round(y + h, 2) + 100,
@@ -191,20 +220,32 @@ def video_detection(path_x=""):
                                 #                 6 * int(frame.shape[1] / 10):int(frame.shape[1])]
                                 if filterData:
                                     stt_m += 1
-                                    imageMotorViolate(frame, int((2 * frame.shape[0]) / 10),
-                                                      int((8 * frame.shape[0]) / 10), 2 * int(frame.shape[1] / 10),
-                                                      int(frame.shape[1]), stt_m)
-                                    stt_BB_m = dataBienBan_M + str(stt_m) + '.pdf'
-                                    frame_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                                    imageMotorViolate(
+                                        frame,
+                                        int((2 * frame.shape[0]) / 10),
+                                        int((8 * frame.shape[0]) / 10),
+                                        2 * int(frame.shape[1] / 10),
+                                        int(frame.shape[1]),
+                                        stt_m,
+                                    )
+                                    stt_BB_m = dataBienBan_M + str(stt_m) + ".pdf"
+                                    frame_pil = Image.fromarray(
+                                        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                                    )
                                     # Tạo tệp tạm thời và lưu ảnh PIL vào đó
-                                    temp_image = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+                                    temp_image = tempfile.NamedTemporaryFile(
+                                        suffix=".jpg", delete=False
+                                    )
                                     frame_pil.save(temp_image.name)
                                     create(box.cls[0])
-                                    createBB.bienBanNopPhat(examBB,
-                                                            temp_image.name,
-                                                            "F:/python_project/data_xe_may_vi_pham/ " + str(
-                                                                stt_m) + '.jpg',
-                                                            stt_BB_m)
+                                    createBB.bienBanNopPhat(
+                                        examBB,
+                                        temp_image.name,
+                                        "F:/python_project/data_xe_may_vi_pham/ "
+                                        + str(stt_m)
+                                        + ".jpg",
+                                        stt_BB_m,
+                                    )
                                     temp_image.close()
 
                                     # cv2.imwrite("F:\python_project\data_xe_may_vi_pham\ " + str(count) + ".xe_may_lan_lan.jpg",
@@ -212,44 +253,75 @@ def video_detection(path_x=""):
                                     # frame = cv2.putText(frame, name[box.cls[0]] + " warning", org, font, fontScale, (0, 0, 255),
                                     #                     thickness, cv2.LINE_AA)
                             else:
-                                draw_text(frame, text, font_scale=0.5,
-                                          pos=(int(box.xyxy[0][0]), int(box.xyxy[0][1])),
-                                          text_color=(255, 255, 255), text_color_bg=(78, 235, 133))
+                                draw_text(
+                                    frame,
+                                    text,
+                                    font_scale=0.5,
+                                    pos=(int(box.xyxy[0][0]), int(box.xyxy[0][1])),
+                                    text_color=(255, 255, 255),
+                                    text_color_bg=(78, 235, 133),
+                                )
                                 # frame = cv2.putText(frame, text, org, font, fontScale,
                                 #                     generate_random_color(int(box.cls[0])), thickness,
                                 #                     cv2.LINE_AA)
                         if box.cls[0] == 0 or box.cls[0] == 3 or box.cls[0] == 4:
                             if canh_bao_vi_pham_lane_xe_may:
-                                draw_text(frame, name[box.cls[0]] + " warning", font_scale=0.5,
-                                          pos=(int(box.xyxy[0][0]), int(box.xyxy[0][1])),
-                                          text_color_bg=(0, 0, 0))
+                                draw_text(
+                                    frame,
+                                    name[box.cls[0]] + " warning",
+                                    font_scale=0.5,
+                                    pos=(int(box.xyxy[0][0]), int(box.xyxy[0][1])),
+                                    text_color_bg=(0, 0, 0),
+                                )
                                 # Cắt hình làn ô tô
                                 if filterData:
                                     stt_ctb += 1
                                     cropped_frame = frame[
-                                                    int((3 * frame.shape[0]) / 10):int((8 * frame.shape[0]) / 10),
-                                                    6 * int(frame.shape[1] / 10):int(frame.shape[1])]
-                                    imageCTBViolate(frame, int((2 * frame.shape[0]) / 10),
-                                                    int((8 * frame.shape[0]) / 10), 0 * int(frame.shape[1] / 10),
-                                                    6 *
-                                                    int(frame.shape[1] / 10), stt_ctb)
+                                        int((3 * frame.shape[0]) / 10) : int(
+                                            (8 * frame.shape[0]) / 10
+                                        ),
+                                        6
+                                        * int(frame.shape[1] / 10) : int(
+                                            frame.shape[1]
+                                        ),
+                                    ]
+                                    imageCTBViolate(
+                                        frame,
+                                        int((2 * frame.shape[0]) / 10),
+                                        int((8 * frame.shape[0]) / 10),
+                                        0 * int(frame.shape[1] / 10),
+                                        6 * int(frame.shape[1] / 10),
+                                        stt_ctb,
+                                    )
 
-                                    stt_BB_CTB = dataBienBan_CTB + str(stt_ctb) + '.pdf'
-                                    frame_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                                    stt_BB_CTB = dataBienBan_CTB + str(stt_ctb) + ".pdf"
+                                    frame_pil = Image.fromarray(
+                                        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                                    )
                                     # Tạo tệp tạm thời và lưu ảnh PIL vào đó
-                                    temp_image = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+                                    temp_image = tempfile.NamedTemporaryFile(
+                                        suffix=".jpg", delete=False
+                                    )
                                     frame_pil.save(temp_image.name)
                                     create(box.cls[0])
-                                    createBB.bienBanNopPhat(examBB,
-                                                            temp_image.name,
-                                                            "F:/python_project/data_oto_vi_pham/ " + str(
-                                                                stt_ctb) + '.jpg',
-                                                            stt_BB_CTB)
+                                    createBB.bienBanNopPhat(
+                                        examBB,
+                                        temp_image.name,
+                                        "F:/python_project/data_oto_vi_pham/ "
+                                        + str(stt_ctb)
+                                        + ".jpg",
+                                        stt_BB_CTB,
+                                    )
                                     temp_image.close()
                             else:
-                                draw_text(frame, text, font_scale=0.5,
-                                          pos=(int(box.xyxy[0][0]), int(box.xyxy[0][1])),
-                                          text_color=(255, 255, 255), text_color_bg=(77, 229, 26))
+                                draw_text(
+                                    frame,
+                                    text,
+                                    font_scale=0.5,
+                                    pos=(int(box.xyxy[0][0]), int(box.xyxy[0][1])),
+                                    text_color=(255, 255, 255),
+                                    text_color_bg=(77, 229, 26),
+                                )
 
                     # muốn lấy 5/10 phần của height tính từ trên xuống
                     start_point = (0, int((2 * frame.shape[0]) / 10))
@@ -259,7 +331,9 @@ def video_detection(path_x=""):
                     thickness = 2
 
                     # vẽ ra cái ROI
-                    image = cv2.rectangle(frame, start_point, end_point, color, thickness)
+                    image = cv2.rectangle(
+                        frame, start_point, end_point, color, thickness
+                    )
 
                     # scale_percent = 30
                     # width = int(image.shape[1] * scale_percent / 100)
@@ -278,21 +352,19 @@ def video_detection(path_x=""):
 def generate_frames(path_x):
     yolo_output = video_detection(path_x)
     for detection_ in yolo_output:
-        ref, buffer = cv2.imencode('.jpg', detection_)
+        ref, buffer = cv2.imencode(".jpg", detection_)
 
         frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
 
 
 def generate_frames_helmet(path_x):
     yolo_output = video_detect_helmet(path_x)
     for detection_ in yolo_output:
-        ref, buffer = cv2.imencode('.jpg', detection_)
+        ref, buffer = cv2.imencode(".jpg", detection_)
 
         frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
 
 
 @app.route("/")
@@ -322,16 +394,20 @@ def camera_1():
 
 @app.route("/camera1")
 def video():
-    return Response(generate_frames(path_x="Videos/test3.mp4"),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(
+        generate_frames(path_x="Videos/test3.mp4"),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
 
 
 @app.route("/camera2")
 def video_2():
-    return Response(generate_frames_helmet(path_x="Videos/main.mp4"),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(
+        generate_frames_helmet(path_x="Videos/test4.mp4"),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
 
 
 if __name__ == "__main__":
-    webbrowser.open('http://127.0.0.1:8000/')
+    webbrowser.open("http://127.0.0.1:8000/")
     app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=True)
