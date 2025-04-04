@@ -196,5 +196,6 @@ if __name__ == "__main__":
         cv2.imshow("Helmet Detection", frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):  # Nhấn q để thoát
             break
+if __name__ == '__main__':
+    video_detect_helmet("Videos/test9.mp4")
 
-    cv2.destroyAllWindows()
