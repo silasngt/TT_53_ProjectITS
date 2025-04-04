@@ -1,5 +1,8 @@
 import datetime
 import webbrowser
+import tempfile
+import cv2
+from PIL import Image
 
 # import Apply
 from flask import Flask, jsonify, url_for
@@ -14,20 +17,15 @@ CORS(app)
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Tai2505@@'
+app.config['MYSQL_PASSWORD'] = 'quannguyen27'
 app.config['MYSQL_DB'] = 'datn'
 mysql = MySQL(app)
-
-#
-# Apply Flask CORSx`
-# CORS(app)
-# app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/test', methods=['GET'])
 def get_violate():
     cur = mysql.connection.cursor()
     cur.execute(
-        "SELECT nametransportation.vh_name  ,  transportationviolation.date_violate , COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name  GROUP BY nametransportation.id_name ;")
+        "SELECT nametransportation.vh_name, ANY_VALUE(transportationviolation.date_violate) as date_violate, COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name GROUP BY nametransportation.id_name;")
     users = cur.fetchall()
     cur.close()
     return jsonify(users)
@@ -37,7 +35,7 @@ def get_violate():
 def get_violate_current():
     cur = mysql.connection.cursor()
     cur.execute(
-        "SELECT nametransportation.vh_name  ,   transportationviolation.date_violate , COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name  where transportationviolation.date_violate = curdate() GROUP BY nametransportation.id_name ;")
+        "SELECT nametransportation.vh_name, ANY_VALUE(transportationviolation.date_violate) as date_violate, COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name WHERE transportationviolation.date_violate = curdate() GROUP BY nametransportation.id_name;")
     users = cur.fetchall()
     cur.close()
     return jsonify(users)
