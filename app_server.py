@@ -16,17 +16,19 @@ app = Flask(__name__, static_folder="static")
 CORS(app)
 
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'quannguyen27'
-app.config['MYSQL_DB'] = 'datn'
+app.config["MYSQL_HOST"] = "localhost"
+app.config["MYSQL_USER"] = "root"
+app.config["MYSQL_PASSWORD"] = "Nguyenkhao1310"
+app.config["MYSQL_DB"] = "datn"
 mysql = MySQL(app)
 
-@app.route('/test', methods=['GET'])
+
+@app.route("/test", methods=["GET"])
 def get_violate():
     cur = mysql.connection.cursor()
     cur.execute(
-        "SELECT nametransportation.vh_name, ANY_VALUE(transportationviolation.date_violate) as date_violate, COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name GROUP BY nametransportation.id_name;")
+        "SELECT nametransportation.vh_name, ANY_VALUE(transportationviolation.date_violate) as date_violate, COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name GROUP BY nametransportation.id_name;"
+    )
 
     users = cur.fetchall()
     cur.close()
@@ -37,8 +39,8 @@ def get_violate():
 def get_violate_current():
     cur = mysql.connection.cursor()
     cur.execute(
-
-        "SELECT nametransportation.vh_name, ANY_VALUE(transportationviolation.date_violate) as date_violate, COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name WHERE transportationviolation.date_violate = curdate() GROUP BY nametransportation.id_name;")
+        "SELECT nametransportation.vh_name, ANY_VALUE(transportationviolation.date_violate) as date_violate, COUNT(*) AS total_violate FROM transportationviolation INNER JOIN nametransportation ON transportationviolation.id_name = nametransportation.id_name WHERE transportationviolation.date_violate = curdate() GROUP BY nametransportation.id_name;"
+    )
 
     users = cur.fetchall()
     cur.close()
@@ -409,6 +411,5 @@ def video_2():
 
 if __name__ == "__main__":
 
-    webbrowser.open('http://127.0.0.1:8000/')
+    webbrowser.open("http://127.0.0.1:8000/")
     app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=True)
-
