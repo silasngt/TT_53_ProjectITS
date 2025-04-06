@@ -174,14 +174,14 @@ def video_detect_helmet(path_x):
                     temp_image.close()
                 print("count : ", count)
 
-        # Thêm thông tin số lượng vi phạm
-        draw_text(
-            display_frame,
-            "So luong vi pham : " + str(len(array_helmet_filter)),
-            font_scale=1.5,
-            pos=(int(0), int(0)),
-            text_color_bg=(255, 255, 255),
-        )
+        # # Thêm thông tin số lượng vi phạm
+        # draw_text(
+        #     display_frame,
+        #     "So luong vi pham : " + str(len(array_helmet_filter)),
+        #     font_scale=1.5,
+        #     pos=(int(0), int(0)),
+        #     text_color_bg=(255, 255, 255),
+        # )
 
         # Trả về frame đã xử lý thông qua generator
         yield display_frame
@@ -196,6 +196,5 @@ if __name__ == "__main__":
         cv2.imshow("Helmet Detection", frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):  # Nhấn q để thoát
             break
-if __name__ == '__main__':
+if __name__ == "__main__":
     video_detect_helmet("Videos/test9.mp4")
-
