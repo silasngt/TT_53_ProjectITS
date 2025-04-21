@@ -18,7 +18,7 @@ CORS(app)
 
 app.config["MYSQL_HOST"] = "localhost"
 app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = "Nguyenkhao1310"
+app.config["MYSQL_PASSWORD"] = "quannguyen27"
 app.config["MYSQL_DB"] = "datn"
 mysql = MySQL(app)
 
@@ -404,7 +404,7 @@ def video():
 @app.route("/camera2")
 def video_2():
     return Response(
-        generate_frames_helmet(path_x="Videos/test4.mp4"),
+        generate_frames_helmet(path_x="Videos/mainn.mp4"),
         mimetype="multipart/x-mixed-replace; boundary=frame",
     )
 
