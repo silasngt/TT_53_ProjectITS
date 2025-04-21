@@ -9,8 +9,9 @@ from flask import Flask, jsonify, url_for
 from flask import render_template, Response
 from flask_cors import CORS
 from flask_mysqldb import MySQL
-from testHelmet import video_detect_helmet
+from testHelmet import video_detect_helmet, create_helmet_violation
 from testLane import *
+
 
 app = Flask(__name__, static_folder="static")
 CORS(app)
@@ -358,12 +359,10 @@ def generate_frames(path_x):
         frame = buffer.tobytes()
         yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
 
-
-def generate_frames_helmet(path_x):
-    yolo_output = video_detect_helmet(path_x)
+def generate_frames_helmet(path_x, mysql_connection=None):
+    yolo_output = video_detect_helmet(path_x, mysql_connection)
     for detection_ in yolo_output:
         ref, buffer = cv2.imencode(".jpg", detection_)
-
         frame = buffer.tobytes()
         yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
 
@@ -404,7 +403,7 @@ def video():
 @app.route("/camera2")
 def video_2():
     return Response(
-        generate_frames_helmet(path_x="Videos/mainn.mp4"),
+        generate_frames_helmet(path_x="Videos/mainn.mp4", mysql_connection=mysql),
         mimetype="multipart/x-mixed-replace; boundary=frame",
     )
 

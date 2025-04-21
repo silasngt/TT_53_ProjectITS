@@ -1,4 +1,4 @@
-# Object Detecion
+# Object Detection
 import math
 import numpy as np
 import cv2
@@ -69,7 +69,7 @@ def video_detect_helmet(path_x, mysql_connection=None):
     examBB = createBB_helmet.infoObject()
 
     try:
-        model = YOLO("model_helmet/helmet.pt")  # large model works better with the GPU
+        model = YOLO("model_helmet/helmet.pt")  # Mô hình làm việc tốt hơn với GPU
     except Exception as e:
         print(f"Lỗi khi tải model: {e}")
         error_frame = np.zeros((480, 640, 3), dtype=np.uint8)
@@ -215,7 +215,8 @@ def video_detect_helmet(path_x, mysql_connection=None):
 
                         # Lưu vi phạm vào database
                         if mysql_connection:
-                            create_helmet_violation(mysql_connection, 0)  # 0 là cho vi phạm không mũ bảo hiểm
+                            create_helmet_violation(mysql_connection, cls)
+                            print(f"Đã lưu vi phạm mũ bảo hiểm vào database - ID: {id}")
 
                         print(f"Vi phạm #{count} - ID xe: {id}")
 
